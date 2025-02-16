@@ -1,1 +1,1 @@
-# perceptron-ai.git
+# perceptron-ai
