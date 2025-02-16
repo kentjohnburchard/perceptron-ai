@@ -23,6 +23,7 @@
     "node-fetch": "^3.3.2",
     "ollama": "^0.5.13",
     "openai": "^4.83.0",
-    "perceptron": "^0.0.1"
+    "perceptron": "^0.0.1",
+    "synaptic": "^1.1.4"
   }
 }
