@@ -1,4 +1,3 @@
-app.use(express.json()); // Enable JSON parsing
 const express = require('express');
 const fetch = require('node-fetch'); // Import node-fetch
 const app = express();
@@ -105,5 +104,7 @@ evolution.run();
         res.status(500).json({ error: 'Error communicating with Ollama API.' });
     }
 });
-const PORT = process.env.PORT || 3000; // Use Render-provided port
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(port, () => {
+    console.log(`Server listening at http://localhost:${port}`);
+});
