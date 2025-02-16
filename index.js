@@ -1,110 +1,53 @@
 const express = require('express');
-const fetch = require('node-fetch'); // Import node-fetch
+const synaptic = require('synaptic');
+
 const app = express();
-const port = 3000;
+app.use(express.json()); // Enable JSON parsing
 
-app.use(express.json());
-app.use(express.static('.')); // Serve static files (like index.html) from the current directory
+// Create and train the neural network
+const Architect = synaptic.Architect;
+const Trainer = synaptic.Trainer;
 
-// Store conversation history (in-memory for this example)
-const conversations = new Map(); // key is client IP, Value is array of messages
+let myNetwork = new Architect.Perceptron(2, 10, 5, 1);
+let trainer = new Trainer(myNetwork);
 
-app.post('/chat', async (req, res) => {
-    const clientIP = req.ip; // Or a more robust unique identifier
-    const prompt = req.body.prompt;
+let trainingSet = [
+    { input: [0, 0], output: [0] },
+    { input: [0, 1], output: [1] },
+    { input: [1, 0], output: [1] },
+    { input: [1, 1], output: [0] }
+];
 
-    if (!prompt) {
-        return res.status(400).json({ error: 'Prompt is required.' });
-    }
+// Train the neural network
+trainer.train(trainingSet, {
+    rate: 0.1,
+    iterations: 20000,
+    error: 0.005,
+    shuffle: true
+});
 
-    // Retrieve or initialize conversation history
-    if (!conversations.has(clientIP)) {
-        conversations.set(clientIP, []);
-    }
-    const history = conversations.get(clientIP);
+// Root route to confirm the server is running
+app.get('/', (req, res) => {
+    res.send("Clara AI API is live!");
+});
 
-
-    // Add user's message to history
-    history.push({ role: 'user', content: prompt });
-
-
-    const ollamaData = {
-        prompt: "", //build prompt from history below
-        model: 'llama2',  // Replace with your model name
-        stream: true, // Enable streaming
-        format: "json",
-        options: {}, // Add any Ollama options you need here
-    };
-
-    //build prompt string from history
-    let prompt_string = "";
-    for(const turn of history){
-        prompt_string += turn.content + "\n"; //add newlines
-    }
-    ollamaData.prompt = prompt_string;
-
-
+// API Endpoint for predictions
+app.post('/predict', (req, res) => {
     try {
-        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(ollamaData),
-        });
-
-        if (!ollamaResponse.ok) {
-            throw new Error(`Ollama API error! status: ${ollamaResponse.status}`);
+        if (!req.body.input || !Array.isArray(req.body.input)) {
+            return res.status(400).send({ error: "Invalid input. Expected an array of numbers." });
         }
 
-        // Set headers for streaming
-        res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Transfer-Encoding', 'chunked');
-        res.setHeader('Access-Control-Allow-Origin', '*'); // For development only!  Restrict in production.
-        
-        const reader = ollamaResponse.body.getReader();
-        let aiResponse = "";
-        const neuralNet = require('./neural-network');
-const evolution = require('./neuroevolution');
+        const input = req.body.input.map(Number); // Convert input to numbers if needed
+        const output = myNetwork.activate(input);
 
-console.log("Running evolved AI...");
-evolution.run();
-
-        
-        //handle streamed response
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-             res.write(value); // Send the raw chunk to the client.
-            //accumulate response for history
-            try{
-                const decoder = new TextDecoder();
-                const chunk = decoder.decode(value);
-                const jsonChunks = chunk.trim().split('\n');
-                for(const jsonChunk of jsonChunks){
-                    const parsedChunk = JSON.parse(jsonChunk);
-                    aiResponse += parsedChunk.response;
-                }
-            } catch(error){
-                //if parsing fails, its not a big deal in this context, we still sent to client
-                console.error("Parsing chunk failed: ", error);
-            }
-        }
-         res.end();  //end the response
-
-
-        // Add AI's *complete* response to history, after streaming is complete
-        history.push({ role: 'assistant', content: aiResponse });
-        conversations.set(clientIP, history); //update history
-
+        res.send({ output });
     } catch (error) {
-        console.error('Error calling Ollama API:', error);
-        res.status(500).json({ error: 'Error communicating with Ollama API.' });
+        console.error("Prediction error:", error);
+        res.status(500).send({ error: "Internal Server Error. Check server logs for details." });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-});
+// Ensure the correct port is used for Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
