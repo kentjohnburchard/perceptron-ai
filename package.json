@@ -1,0 +1,28 @@
+{
+  "name": "clinical-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "langchain": "^0.3.15",
+    "mongoose": "^8.9.5",
+    "neataptic": "^1.4.7",
+    "node-fetch": "^3.3.2",
+    "ollama": "^0.5.13",
+    "openai": "^4.83.0",
+    "perceptron": "^0.0.1"
+  }
+}
