@@ -1,10 +1,12 @@
 const express = require('express');
+const cors = require('cors');
 const synaptic = require('synaptic');
 
 const app = express();
+app.use(cors());  // ✅ Fix for CORS blocking
 app.use(express.json()); // Enable JSON parsing
 
-// Define and train a simple neural network
+// Define and train the neural network
 const Architect = synaptic.Architect;
 const Trainer = synaptic.Trainer;
 
