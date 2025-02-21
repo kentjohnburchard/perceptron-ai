@@ -1,14 +1,26 @@
-const { OpenAI } = require("openai");
+const natural = require("natural");
+const tokenizer = new natural.WordTokenizer();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// ✅ Simple compliance rules
+const complianceRules = [
+    { policy: "Privacy Act Compliance", keywords: ["privacy", "data", "protection"] },
+    { policy: "Security Regulation", keywords: ["security", "breach", "hack"] },
+    { policy: "Healthcare Compliance", keywords: ["health", "medical", "patient"] },
+    { policy: "Financial Compliance", keywords: ["money", "fraud", "finance"] },
+];
 
-async function askAI(question) {
-   const response = await openai.completions.create({
-      model: "gpt-4",
-      prompt: question,
-      max_tokens: 500
-   });
-   return response.choices[0].text;
+// ✅ Function to analyze compliance query
+function analyzeQuery(query) {
+    const tokens = tokenizer.tokenize(query.toLowerCase());
+    let matchedPolicies = [];
+
+    complianceRules.forEach(rule => {
+        if (tokens.some(token => rule.keywords.includes(token))) {
+            matchedPolicies.push(rule.policy);
+        }
+    });
+
+    return { matchedPolicies: matchedPolicies.length ? matchedPolicies : ["General Compliance Guidelines"] };
 }
 
-module.exports = { askAI };
+module.exports = { analyzeQuery };
