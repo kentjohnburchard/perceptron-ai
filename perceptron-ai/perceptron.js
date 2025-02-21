@@ -1,3 +1,4 @@
+app.use(express.json()); // Enable JSON parsing
 const synaptic = require('synaptic');
 const Architect = synaptic.Architect;
 const Trainer = synaptic.Trainer;
@@ -47,7 +48,6 @@ app.post('/predict', (req, res) => {
         res.status(500).send({ error: "Internal Server Error. Check server logs for details." });
     }
 });
-
 // Start the server
 const PORT = process.env.PORT || 3000; // Use Render-provided port
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
